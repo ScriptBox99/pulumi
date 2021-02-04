@@ -2,7 +2,13 @@ CHANGELOG
 =========
 
 ## HEAD (Unreleased)
-_(none)_
+
+- [cli] Disable permalinks to the update details page when using non-SaaS backends (S3, Azure, GCS). Should the user want to get
+  permalinks when using a non-SaaS backend, they can pass a flag:
+  `pulumi up --non-saas-permalink-enabled`.
+  Permalinks for these non-SaaS backends will be suppressed on `update`, `preview`,
+  `destroy`, `import` and `refresh` operations.
+  [#6251](https://github.com/pulumi/pulumi/pull/6251)
 
 ## 2.20.0 (2021-02-03)
 

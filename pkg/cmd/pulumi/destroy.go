@@ -47,6 +47,7 @@ func newDestroyCmd() *cobra.Command {
 	var skipPreview bool
 	var suppressOutputs bool
 	var suppressPermaLink bool
+	var optInNonSaasPermaLink bool
 	var yes bool
 	var targets *[]string
 	var targetDependents bool
@@ -91,6 +92,16 @@ func newDestroyCmd() *cobra.Command {
 				Type:                 displayType,
 				EventLogPath:         eventLogPath,
 				Debug:                debug,
+			}
+
+			filestateBackend, err := isFilestateBackend(opts.Display)
+			if err != nil {
+				return result.FromError(err)
+			}
+			// by default, we are going to suppress the permalink when using non-SaaS backends
+			// this can be re-enabled using the `opt-in` flag
+			if filestateBackend && !optInNonSaasPermaLink {
+				opts.Display.SuppressPermaLink = true
 			}
 
 			s, err := requireStack(stack, false, opts.Display, true /*setCurrent*/)
@@ -203,6 +214,9 @@ func newDestroyCmd() *cobra.Command {
 	cmd.PersistentFlags().BoolVar(
 		&suppressPermaLink, "suppress-permalink", false,
 		"Suppress display of the state permalink")
+	cmd.PersistentFlags().BoolVar(
+		&optInNonSaasPermaLink, "non-saas-permalink-enabled", false,
+		"Opt-in to showing permalinks to non-SaaS backends e.g. S3, Azure blob, GCS Storage etc.")
 
 	cmd.PersistentFlags().BoolVarP(
 		&yes, "yes", "y", false,

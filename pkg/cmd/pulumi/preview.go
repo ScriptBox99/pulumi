@@ -50,6 +50,7 @@ func newPreviewCmd() *cobra.Command {
 	var showReads bool
 	var suppressOutputs bool
 	var suppressPermaLink bool
+	var optInNonSaasPermaLink bool
 	var targets []string
 	var replaces []string
 	var targetReplaces []string
@@ -91,6 +92,16 @@ func newPreviewCmd() *cobra.Command {
 				JSONDisplay:          jsonDisplay,
 				EventLogPath:         eventLogPath,
 				Debug:                debug,
+			}
+
+			filestateBackend, err := isFilestateBackend(displayOpts)
+			if err != nil {
+				return result.FromError(err)
+			}
+			// by default, we are going to suppress the permalink when using non-SaaS backends
+			// this can be re-enabled using the `opt-in` flag
+			if filestateBackend && !optInNonSaasPermaLink {
+				displayOpts.SuppressPermaLink = true
 			}
 
 			if err := validatePolicyPackConfig(policyPackPaths, policyPackConfigPaths); err != nil {
@@ -260,6 +271,9 @@ func newPreviewCmd() *cobra.Command {
 	cmd.PersistentFlags().BoolVar(
 		&suppressPermaLink, "suppress-permalink", false,
 		"Suppress display of the state permalink")
+	cmd.PersistentFlags().BoolVar(
+		&optInNonSaasPermaLink, "non-saas-permalink-enabled", false,
+		"Opt-in to showing permalinks to non-SaaS backends e.g. S3, Azure blob, GCS Storage etc.")
 
 	if hasDebugCommands() {
 		cmd.PersistentFlags().StringVar(
